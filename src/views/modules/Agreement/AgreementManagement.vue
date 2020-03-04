@@ -356,15 +356,17 @@
 
         this.editData = row
 
-        console.log("-----------------", this.addForm)
-        // this.healthstatus = healthstatus.split(",")
-        // this.addForm.image.fileurl = row.fileurl
-        // this.addForm.image.filename = row.filename
-        // let tem = row.fileurl.replace(this.rep, "http://192.168.0.185:8888") 
-        // console.log("图片地址", tem)
+        console.log("-----------------", row)
+        // this.healthstatus = healthstatus.split(",")    
+        console.log(process.env.imgurl)
+        
+        let tem = row.fileurl.replace(this.rep, process.env.imgurl) 
+        console.log("图片地址", tem)
+        this.addForm.url = tem;
+        this.addForm.url = row.filename;
         this.fileList = [{
           name: row.filename,
-          url: row.fileurl,
+          url: tem,
         }]
       },
       editCommit() { //编辑请求
@@ -385,8 +387,8 @@
             name: this.addForm.name,
             status: this.addForm.status,
             id: this.editData.id,
-            fileurl: this.addForm.image.url,
-            filename: this.addForm.image.url,
+            fileurl: this.addForm.url,
+            filename: this.addForm.url,
           })
         }).then((data) => {
           if (data.data.code == 0) {

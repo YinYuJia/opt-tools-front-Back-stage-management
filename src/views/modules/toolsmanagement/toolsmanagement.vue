@@ -1,5 +1,5 @@
 <template>
-  <!-- 人员统计 -->
+  <!-- 工具管理 -->
   <div class="mod-role">
     <el-form :inline="true" :model="dataForm" @keyup.enter.native="getDataList()">
       <el-form-item>
@@ -15,18 +15,32 @@
       style="width: 100%;">
       <!-- <el-table-column type="selection" header-align="center" align="center" width="50">
           </el-table-column> -->
-      <el-table-column prop="name" header-align="center" align="center" width="180" label="设备类名称">
+      <el-table-column prop="sbmc" header-align="center" align="center" width="180" label="设备名称">
       </el-table-column>
-      <el-table-column prop="status" header-align="center" align="center" :formatter="sexFormatter" width="180" label="是否显示">
+      <el-table-column prop="sfst" header-align="center" align="center" :formatter="sexFormatter" width="180"
+        label="是否双套">
       </el-table-column>
-
-      <el-table-column header-align="center" align="center" width="180" label="其他信息">
-        <template slot-scope="scope">
-          <el-button v-if="isAuth('sys:role:update')" type="success" style="width:100px" @click="look(scope.row)">查看
-          </el-button>
-        </template>
+            <el-table-column prop="ggxh" header-align="center" align="center" width="180" label="规格型号">
       </el-table-column>
-      <el-table-column prop="creatdate" header-align="center" align="center" min-width="280" label="操作时间">
+            <el-table-column prop="sccj" header-align="center" align="center" width="180" label="生产厂家">
+      </el-table-column>
+            <el-table-column prop="ccdate" header-align="center" align="center" min-width="180" label="出厂日期">
+      </el-table-column>
+            <el-table-column prop="syqx" header-align="center" align="center" width="180" label="使用期限">
+      </el-table-column>
+            <el-table-column prop="ccbh" header-align="center" align="center" width="180" label="出厂编号">
+      </el-table-column>
+            <el-table-column prop="syzq" header-align="center" align="center" width="180" label="试验周期">
+      </el-table-column>
+            <el-table-column prop="bcsydate" header-align="center" align="center" width="180" label="本次试验">
+      </el-table-column>
+            <el-table-column prop="xcsydate" header-align="center" align="center" width="180" label="下次实验">
+      </el-table-column>
+            <el-table-column prop="bz" header-align="center" align="center" width="180" label="备注">
+      </el-table-column>
+            <el-table-column prop="creatdate" header-align="center" align="center" width="180" label="创建时间">
+      </el-table-column>
+      <el-table-column prop="creatdate" header-align="center" align="center" width="280" label="操作时间">
       </el-table-column>
       <el-table-column fixed="right" header-align="center" align="center" width="150" label="操作">
         <template slot-scope="scope">
@@ -45,29 +59,53 @@
     <!-- 弹窗, 新增 / 修改 -->
     <el-dialog :title="title" :visible.sync="dialogFormVisible">
       <el-form :model="addForm">
-        <el-form-item label="设备类名称" :label-width="formLabelWidth">
-          <el-input style="width:90%" v-model="addForm.name" autocomplete="off"></el-input>
+        <el-form-item label="设备名称" :label-width="formLabelWidth">
+          <el-input style="width:90%" v-model="addForm.sbmc" autocomplete="off"></el-input>
         </el-form-item>
-        <!-- <el-form-item label="协议模板" :label-width="formLabelWidth">
-          <el-select style="width:90%" v-model="addForm.region" placeholder="请选择协议模板">
-            <el-option v-for="item in xieyiList" :key="item.id" :label="item.name" :value="item.id"></el-option>
+        <el-form-item label="设备类" :label-width="formLabelWidth">
+          <el-select style="width:90%" v-model="addForm.deviceid" placeholder="请选择设备类">
+            <el-option v-for="item in deviceidList" :key="item.id" :label="item.name" :value="item.id"></el-option>
           </el-select>
-        </el-form-item> -->
-        <el-form-item label="是否显示" :label-width="formLabelWidth">
-          <el-radio-group v-model="addForm.status">
-            <el-radio label="0">显示</el-radio>
-            <el-radio label="1">不显示</el-radio>
+        </el-form-item>
+        <el-form-item label="规格型号" :label-width="formLabelWidth">
+          <el-input style="width:90%" v-model="addForm.ggxh" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="生产厂家" :label-width="formLabelWidth">
+
+          <el-input style="width:90%" v-model="addForm.sccj" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="出厂日期" :label-width="formLabelWidth">
+          <el-date-picker style="width:90%" v-model="addForm.ccdate" format="yyyy-MM-dd" value-format="yyyy-MM-dd"
+            type="date" placeholder="选择日期时间">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="使用期限" :label-width="formLabelWidth">
+          <el-input style="width:90%" v-model="addForm.syqx" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="出厂编号" :label-width="formLabelWidth">
+          <el-input style="width:90%" v-model="addForm.ccbh" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="是否双套" :label-width="formLabelWidth">
+          <el-radio-group v-model="addForm.sfst">
+            <el-radio label="0">是</el-radio>
+            <el-radio label="1">不是</el-radio>
           </el-radio-group>
         </el-form-item>
-
-        <el-form-item label="上传照片" :label-width="formLabelWidth">
-          <el-upload ref='upload' style="width:90%" :auto-upload='false' :file-list="fileList" :multiple='false'
-            :limit="1" :http-request="uploadFiles" accept="image/jpeg,image/gif,image/png" action='' list-type="picture"
-            :on-change='changeUpload'>
-            <el-button slot="trigger" size="mini" type="primary">选取图片</el-button>
-            <span>&nbsp;</span>
-            <el-button @click='uploadFiles' size="mini" type="primary">点击上传</el-button>
-          </el-upload>
+        <el-form-item label="实验周期" :label-width="formLabelWidth">
+          <el-input style="width:90%" v-model="addForm.syzq" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="本次实验" :label-width="formLabelWidth">
+          <el-date-picker style="width:90%" v-model="addForm.bcsydate" format="yyyy-MM-dd" value-format="yyyy-MM-dd"
+            type="date" placeholder="选择日期时间">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="下次实验" :label-width="formLabelWidth">
+          <el-date-picker style="width:90%" v-model="addForm.xcsydate" format="yyyy-MM-dd" value-format="yyyy-MM-dd"
+            type="date" placeholder="选择日期时间">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="备注" :label-width="formLabelWidth">
+          <el-input style="width:90%" v-model="addForm.bz" autocomplete="off"></el-input>
         </el-form-item>
 
       </el-form>
@@ -78,53 +116,22 @@
       </div>
     </el-dialog>
 
-        <el-dialog title="照片查看" :visible.sync="dialogimg" >
-          <img style="width:60%;height:670px;margin-left:50%;transform: translate(-50%);" :src="imgurl" alt="">
+    <el-dialog title="照片查看" :visible.sync="dialogimg">
+      <img style="width:60%;height:670px;margin-left:50%;transform: translate(-50%);" :src="imgurl" alt="">
     </el-dialog>
   </div>
 </template>
 
 <script>
-
   export default {
     data() {
       return {
-        imgurl:"",
-        dialogimg:false,
+        imgurl: "",
+        dialogimg: false,
         url: "",
         title: "新增人员",
         ishealthstatus: true,
         FFFhealthstatus: "",
-        // 0，无异常 1，发热 2乏力 3干咳 4 鼻塞 5流涕 6咽痛 7腹泻
-        roleList: [{
-          roleName: "发热",
-          roleId: "1",
-          id: 1,
-        }, {
-          roleName: "乏力",
-          roleId: "2",
-          id: 1,
-        }, {
-          roleName: "干咳",
-          roleId: "3",
-          id: 1,
-        }, {
-          roleName: "鼻塞",
-          roleId: "4",
-          id: 1,
-        }, {
-          roleName: "流涕",
-          roleId: "5",
-          id: 1,
-        }, {
-          roleName: "咽痛",
-          roleId: "6",
-          id: 1,
-        }, {
-          roleName: "腹泻",
-          roleId: "7",
-          id: 1,
-        }],
         multipleSelection: [],
         beizhu: "",
         gridData: [],
@@ -144,16 +151,16 @@
         },
         data: [],
         dialogFormVisible: false,
-        xieyiList: [],
+        deviceidList: [],
         formLabelWidth: '180px',
         dataForm: {
           name: '',
         },
         gcode: [],
         addForm: {
-          name: "",
+          sbmc: "",
 
-          status: "",
+          sfst: "",
 
           image: ""
         },
@@ -182,9 +189,30 @@
     },
     activated() {
       this.getDataList()
-
+      this.getdeviceidList()
     },
     methods: {
+      getdeviceidList() {
+        this.$http({
+          url: this.$http.adornUrl('tools/device/list'),
+          method: 'get',
+          params: this.$http.adornParams({
+            'page': 1,
+            'limit': 1000000,
+            'name': "",
+          })
+        }).then(({
+          data
+        }) => {
+          if (data && data.code === 0) {
+            console.log("设备类", data.page.list)
+            this.deviceidList = data.page.list
+          } else {
+
+          }
+
+        })
+      },
       look(val) {
         // console.log("]]]]",val.fileurl)
         let tem = val.fileurl.replace(this.rep, "http://192.168.0.185:8888")
@@ -274,12 +302,13 @@
       },
       cancel() {
         this.dialogFormVisible = false
+        this.addForm = {}
       },
       sexFormatter(val) {
-        if (val.status == 0) {
-          return "显示"
+        if (val.sfst == 0) {
+          return "是"
         } else {
-          return "不显示"
+          return "不是"
         }
       },
       idcardFormatter(val) { //身份证脱敏
@@ -311,24 +340,10 @@
       addCommit() { //添加请求
 
         console.log("-------", this.addForm)
-        if (this.addForm.image == undefined) {
-          this.$message({
-            message: "请先上传照片",
-            type: 'error',
-          })
-          return
-        }
-
         this.$http({
-          url: this.$http.adornUrl('/tools/device/save'),
+          url: this.$http.adornUrl('/tools/deviceinfo/save'),
           method: 'POST',
-          data: this.$http.adornData({
-            name: this.addForm.name,
-            status: this.addForm.status,
-            fileurl: this.addForm.image.url,
-            filename: this.addForm.image.name,
-
-          })
+          data: this.$http.adornData(this.addForm)
         }).then((data) => {
           if (data.data.code == 0) {
             this.dialogFormVisible = false
@@ -350,9 +365,8 @@
       updateHandle(row) { //编辑
         this.dialogFormVisible = true
         this.title = "编辑人员信息"
-        this.addForm.name = row.name;
-        this.addForm.status = String(row.status);
-
+this.addForm = row
+this.addForm.sfst = String(row.sfst)
 
         this.editData = row
 
@@ -369,25 +383,12 @@
       },
       editCommit() { //编辑请求
 
-        console.log("---122222222222----", this.addForm)
-        if (this.fileList.length == 0) {
-          this.$message({
-            message: "请先上传照片",
-            type: 'error',
-          })
-          return
-        }
-        
+        console.log("---1修改22----", this.addForm)
+
         this.$http({
-          url: this.$http.adornUrl('tools/device/update'),
+          url: this.$http.adornUrl('tools/deviceinfo/update'),
           method: 'POST',
-          data: this.$http.adornData({
-            name: this.addForm.name,
-            status: this.addForm.status,
-            id: this.editData.id,
-            fileurl: this.addForm.image.url,
-            filename: this.addForm.image.url,
-          })
+          data: this.$http.adornData(this.addForm)
         }).then((data) => {
           if (data.data.code == 0) {
             if (data.data.code == 0) {
@@ -430,7 +431,7 @@
       getDataList() { // 获取数据列表
         this.dataListLoading = true
         this.$http({
-          url: this.$http.adornUrl('tools/device/list'),
+          url: this.$http.adornUrl('tools/deviceinfo/list'),
           method: 'get',
           params: this.$http.adornParams({
             'page': this.pageIndex,
@@ -473,7 +474,7 @@
           type: 'warning'
         }).then(() => {
           this.$http({
-            url: this.$http.adornUrl('tools/device/delete'),
+            url: this.$http.adornUrl('tools/deviceinfo/delete'),
             method: 'post',
             data: this.$http.adornData(ids, false)
           }).then(({
@@ -502,7 +503,7 @@
 <style scoped>
   .groupgroup {
     margin-top: 4% !important;
-    
+
   }
 
 </style>

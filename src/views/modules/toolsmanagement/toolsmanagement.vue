@@ -125,7 +125,7 @@
       <el-form :model="addForm">
         <el-form-item label-width="0">
           <el-upload  action="#" list-type="picture-card" :on-preview="handlePictureCardPreview"
-            :on-remove="handleRemove" :before-remove="beforeRemove" :http-request="uploadAvatar" :before-upload="beforeAvatarUpload"
+             :before-remove="beforeRemove" :http-request="uploadAvatar" :before-upload="beforeAvatarUpload"
             :file-list="fileList1">
             <i class="el-icon-plus"></i>
           </el-upload>
@@ -135,8 +135,8 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="cancel()">取 消</el-button>
-        <el-button type="primary" @click="commit()">确 定</el-button>
+        <el-button @click="uploadfile = false">取 消</el-button>
+        <el-button type="primary" @click="uploadfile = false">确 定</el-button>
       </div>
     </el-dialog>
     <el-dialog title="照片查看" :visible.sync="dialogimg">
@@ -247,11 +247,12 @@
             this.photoRep = data.photoRep
             let temp = []
             data.list.map((item, index) => {
-              item.url = item.url.replace(this.photoRep, process.env.imgurl)
+              item.newurl = item.url.replace(this.photoRep, process.env.imgurl)
               temp.push({
                 name:item.name,
-                url:item.url,
-                id:item.id
+                url:item.newurl,
+                id:item.id,
+                urlold:item.url
               })
             })
             this.fileList1 = temp
@@ -327,8 +328,38 @@
       },
       beforeRemove(file,filelist) {
          console.log("22222",file)
-         console.log("22222",filelist)
-         return true
+        // this.$http({
+        //   url: this.$http.adornUrl('tools/file/deleteFile'),
+        //   method: 'POST',
+        //   data: this.$http.adornData({
+        //     fileId:file.id
+        //   })
+        // })
+        
+         this.$http({
+          url: this.$http.adornUrl('tools/file/deleteFile'),
+          method: 'get',
+          params: this.$http.adornParams({
+            'fileId': file.id,
+            'fileUrl':file.urlold
+          })
+        }).then((data) => {
+          if (data.data.code == 0) {
+            this.$message({
+              message: "删除成功",
+              type: 'success',
+            })
+             return true
+          } else {
+            console.log(2)
+            this.$message({
+              message: data.data.msg,
+              type: 'wraning',
+            })
+            return false
+          }
+        })
+        console.log(3)
       },
       handleRemove(file, fileList) {
         console.log("file000000",file.id)
@@ -356,12 +387,12 @@
           }
         })
               
-        // this.fileList1 = fileList
-        for (const i in this.picList) {
-          if (this.picList[i].key === file.uid) {
-            this.picList.splice(i, 1)
-          }
-        }
+        // // this.fileList1 = fileList
+        // for (const i in this.picList) {
+        //   if (this.picList[i].key === file.uid) {
+        //     this.picList.splice(i, 1)
+        //   }
+        // }
       },
       handlePictureCardPreview(file) {
         this.dialogImageUrl = file.url

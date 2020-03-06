@@ -15,8 +15,9 @@ module.exports = {
     // 代理列表, 是否开启代理通过[./dev.env.js]配置
     proxyTable: devEnv.OPEN_PROXY === false ? {} : {
       '/opt_tools': {
-        target: 'http://2895cl5225.qicp.vip/opt_tools/', //詹加州外网
-
+        // target: 'http://2895cl5225.qicp.vip/opt_tools/', //詹加州外网
+         target: 'http://zhanjiazhou.free.idcfengye.com/opt_tools/', //詹加州外网
+        
         changeOrigin: true,
         pathRewrite: {
           '^/opt_tools': '/'

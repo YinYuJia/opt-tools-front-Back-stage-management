@@ -187,7 +187,7 @@
     methods: {
       look(val) {
         // console.log("]]]]",val.fileurl)
-        let tem = val.fileurl.replace(this.rep, "http://192.168.0.185:8888")
+        let tem = val.fileurl.replace(this.rep, process.env.imgurl)
         console.log(tem)
         this.imgurl = tem
         this.dialogimg = true

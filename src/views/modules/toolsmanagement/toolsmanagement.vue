@@ -20,35 +20,41 @@
       <el-table-column prop="sfst" header-align="center" align="center" :formatter="sexFormatter" width="180"
         label="是否双套">
       </el-table-column>
-            <el-table-column prop="ggxh" header-align="center" align="center" width="180" label="规格型号">
+      <el-table-column prop="ggxh" header-align="center" align="center" width="180" label="规格型号">
       </el-table-column>
-            <el-table-column prop="sccj" header-align="center" align="center" width="180" label="生产厂家">
+      <el-table-column prop="sccj" header-align="center" align="center" width="180" label="生产厂家">
       </el-table-column>
-            <el-table-column prop="ccdate" header-align="center" align="center" min-width="180" label="出厂日期">
+      <el-table-column prop="ccdate" header-align="center" align="center" min-width="180" label="出厂日期">
       </el-table-column>
-            <el-table-column prop="syqx" header-align="center" align="center" width="180" label="使用期限">
+      <el-table-column prop="syqx" header-align="center" align="center" width="180" label="使用期限">
       </el-table-column>
-            <el-table-column prop="ccbh" header-align="center" align="center" width="180" label="出厂编号">
+      <el-table-column prop="ccbh" header-align="center" align="center" width="180" label="出厂编号">
       </el-table-column>
-            <el-table-column prop="syzq" header-align="center" align="center" width="180" label="试验周期">
+      <el-table-column prop="syzq" header-align="center" align="center" width="180" label="试验周期">
       </el-table-column>
-            <el-table-column prop="bcsydate" header-align="center" align="center" width="180" label="本次试验">
+      <el-table-column prop="bcsydate" header-align="center" align="center" width="180" label="本次试验">
       </el-table-column>
-            <el-table-column prop="xcsydate" header-align="center" align="center" width="180" label="下次实验">
+      <el-table-column prop="xcsydate" header-align="center" align="center" width="180" label="下次实验">
       </el-table-column>
-            <el-table-column prop="bz" header-align="center" align="center" width="180" label="备注">
+      <el-table-column prop="bz" header-align="center" align="center" width="180" label="备注">
       </el-table-column>
-            <el-table-column prop="creatdate" header-align="center" align="center" width="180" label="创建时间">
+      <el-table-column prop="creatdate" header-align="center" align="center" width="180" label="创建时间">
       </el-table-column>
       <el-table-column prop="creatdate" header-align="center" align="center" width="280" label="操作时间">
       </el-table-column>
-      <el-table-column fixed="right" header-align="center" align="center" width="150" label="操作">
+      <el-table-column fixed="right" header-align="center" align="center" width="250" label="操作">
         <template slot-scope="scope">
-          <el-button v-if="isAuth('sys:role:update')" type="text" size="small" @click="updateHandle(scope.row)">
-            修改</el-button>
+          <el-button v-if="isAuth('sys:role:update')" type="text" size="small" @click="updateHandle(scope.row)">修改
+          </el-button>
           <span>|</span>
           <el-button v-if="isAuth('sys:role:delete')" style="color:red" type="text" size="small"
             @click="deleteHandle(scope.row.id)">删除</el-button>
+          <span>|</span>
+          <el-button v-if="isAuth('sys:role:delete')" style="color:red" type="text" size="small"
+            @click="upLoadImg(scope.row)">上传图纸</el-button>
+          <span>|</span>
+          <el-button v-if="isAuth('sys:role:delete')" style="color:red" type="text" size="small"
+            @click="searchUpLoadImg(scope.row)">查询图纸</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -110,12 +116,29 @@
 
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button v-if="!ishealthstatus" @click="goback()">返 回</el-button>
         <el-button @click="cancel()">取 消</el-button>
         <el-button type="primary" @click="commit()">确 定</el-button>
       </div>
     </el-dialog>
 
+    <el-dialog title="上传图纸" :visible.sync="uploadfile">
+      <el-form :model="addForm">
+        <el-form-item label-width="0">
+          <el-upload  action="#" list-type="picture-card" :on-preview="handlePictureCardPreview"
+            :on-remove="handleRemove" :before-remove="beforeRemove" :http-request="uploadAvatar" :before-upload="beforeAvatarUpload"
+            :file-list="fileList1">
+            <i class="el-icon-plus"></i>
+          </el-upload>
+          <el-dialog :visible.sync="dialogVisible">
+            <img width="100%" :src="dialogImageUrl" alt="">
+          </el-dialog>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="cancel()">取 消</el-button>
+        <el-button type="primary" @click="commit()">确 定</el-button>
+      </div>
+    </el-dialog>
     <el-dialog title="照片查看" :visible.sync="dialogimg">
       <img style="width:60%;height:670px;margin-left:50%;transform: translate(-50%);" :src="imgurl" alt="">
     </el-dialog>
@@ -128,13 +151,14 @@
       return {
         imgurl: "",
         dialogimg: false,
+        uploadfile: false,
+        uploadfileData: {},
+        fileList1:[],
         url: "",
         title: "新增人员",
-        ishealthstatus: true,
         FFFhealthstatus: "",
+        selectDisabled:false,
         multipleSelection: [],
-        beizhu: "",
-        gridData: [],
         sendData: {},
         sssss: [],
         cascader: ["30"],
@@ -171,21 +195,20 @@
         totalPage: 0,
         dataListLoading: false,
         dataListSelections: [],
-        selectedList: [],
+
         isId: "",
         editData: {},
-        tem: [],
-        no: true,
         fileList: [],
         rep: "",
+        dialogImageUrl: '',
+        dialogVisible: false,
+        picList: [],
+        photoRep: "",
+        templist: [],
       }
     },
     watch: {
-      "FFFhealthstatus": function (val) {
-        if (val == 1) {
-          // this.ishealthstatus = false
-        }
-      }
+
     },
     activated() {
       this.getDataList()
@@ -205,17 +228,51 @@
           data
         }) => {
           if (data && data.code === 0) {
-            console.log("设备类", data.page.list)
             this.deviceidList = data.page.list
-          } else {
-
-          }
+          } else {}
+        })
+      },
+      searchUpLoadImg(row) {
+        console.log(row)
+        this.$http({
+          url: this.$http.adornUrl('tools/file/queryAllList'),
+          method: 'get',
+          params: this.$http.adornParams({
+            'projectid': row.id,
+          })
+        }).then(({
+          data
+        }) => {
+          if (data && data.code === 0) {
+            this.photoRep = data.photoRep
+            let temp = []
+            data.list.map((item, index) => {
+              item.url = item.url.replace(this.photoRep, process.env.imgurl)
+              temp.push({
+                name:item.name,
+                url:item.url,
+                id:item.id
+              })
+            })
+            this.fileList1 = temp
+            console.log("filelist1---",this.fileList1)
+            this.uploadfile = true;
+            this.selectDisabled = true
+            console.log(data.list)
+            // [{name: 'food.jpg', url: 'https://xxx.cdn.com/xxx.jpg'}]
+            
+          } else {}
 
         })
       },
+      upLoadImg(row) {
+        this.uploadfile = true
+        this.uploadfileData = row
+        this.selectDisabled = false;
+      },
       look(val) {
         // console.log("]]]]",val.fileurl)
-        let tem = val.fileurl.replace(this.rep, "http://192.168.0.185:8888")
+        let tem = val.fileurl.replace(this.rep, process.env.imgurl)
         console.log(tem)
         this.imgurl = tem
         this.dialogimg = true
@@ -223,6 +280,107 @@
       changeUpload(val) {
         console.log("val--", val)
         //  this.addForm.image.url
+      },
+
+      uploadAvatar(item) {
+        console.log("[[[[[[[", this.uploadfileData)
+        const formData = new FormData()
+        formData.append('file', item.file)
+        const uid = item.file.uid
+        console.log(item.file)
+        let myform = new FormData()
+
+        myform.append('file', item.file);
+        myform.append('projectid', this.uploadfileData.id);
+        console.log("开始请求")
+        this.$http({
+          url: this.$http.adornUrl('tools/file/uploadFile'),
+          method: 'POST',
+          data: myform
+        }).then((data) => {
+          console.log("返回值-----", data)
+          if (data.data.code == 0) {
+            this.$message({
+              message: "上传成功",
+              type: 'success'
+            });
+          } else {
+            this.$message({
+              message: "上传失败",
+              type: 'warning'
+            });
+          }
+        })
+      },
+      beforeAvatarUpload(file) {
+        const isJPG = file.type === 'image/jpeg'
+        const isPng = file.type === 'image/png'
+        const isLt2M = file.size / 1024 / 1024 < 5
+
+        if (!isJPG && !isPng) {
+          this.$message.error('上传图片只能是 JPG或png 格式!')
+        }
+        if (!isLt2M) {
+          this.$message.error('上传图片大小不能超过 5MB!')
+        }
+        return (isJPG || isPng) && isLt2M
+      },
+      beforeRemove(file,filelist) {
+         console.log("22222",file)
+         console.log("22222",filelist)
+         return true
+      },
+      handleRemove(file, fileList) {
+        console.log("file000000",file.id)
+        this.$http({
+          url: this.$http.adornUrl('tools/file/deleteFile'),
+          method: 'POST',
+          data: this.$http.adornData({
+            fileId:file.id
+          })
+        }).then((data) => {
+          if (data.data.code == 0) {
+            
+            this.$message({
+              message: "删除成功",
+              type: 'success',
+              onClose: () => {
+                this.getDataList()
+              }
+            })
+          } else {
+            this.$message({
+              message: data.data.msg,
+              type: 'wraning',
+            })
+          }
+        })
+              
+        // this.fileList1 = fileList
+        for (const i in this.picList) {
+          if (this.picList[i].key === file.uid) {
+            this.picList.splice(i, 1)
+          }
+        }
+      },
+      handlePictureCardPreview(file) {
+        this.dialogImageUrl = file.url
+        this.dialogVisible = true
+      },
+      /**
+       * 清空上传组件
+       */
+      emptyUpload() {
+        const mainImg = this.$refs.upload
+        if (mainImg) {
+          if (mainImg.length) {
+            mainImg.forEach(item => {
+              item.clearFiles()
+            })
+          } else {
+            this.$refs.upload.clearFiles()
+          }
+        }
       },
       uploadFiles() {
         let file = this.$refs.upload.$refs['upload-inner'].$refs.input; //获取文件数据
@@ -296,10 +454,6 @@
       uploadSuccess(data) {
         console.log("--上传照片成功回调--", data)
       },
-      goback() {
-        //  this.ishealthstatus = !this.ishealthstatus
-        this.FFFhealthstatus = "0"
-      },
       cancel() {
         this.dialogFormVisible = false
         this.addForm = {}
@@ -365,8 +519,8 @@
       updateHandle(row) { //编辑
         this.dialogFormVisible = true
         this.title = "编辑人员信息"
-this.addForm = row
-this.addForm.sfst = String(row.sfst)
+        this.addForm = row
+        this.addForm.sfst = String(row.sfst)
 
         this.editData = row
 
@@ -425,7 +579,6 @@ this.addForm.sfst = String(row.sfst)
         this.gcode = []
         this.healthstatus = []
         this.fileList = []
-        // this.ishealthstatus = true
         this.FFFhealthstatus = ""
       },
       getDataList() { // 获取数据列表
